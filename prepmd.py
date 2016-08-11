@@ -1,73 +1,120 @@
 #!/usr/bin/env python
 
-import argparse
-import io 
-import subprocess
+from subprocess import check_call
 
-# making a cp of original w/changed output
-# name separation--> output name
+def newName(fName, N=None):
+    '''creates a new file name from input filename
+       input:
+            fName: Name of original file you want a modified ver of
+            N: int you want to append at the end of fName
+       output:
+            str holding a modified filename of fName
+    '''
+    if N == None:
+        fileCount = '_full'
+    else:
+        fileCount = str(N)
 
-exp = raw_input('File to preprocess: ')  # change name here to your fileName.txt
-x = 0
-for i in range(len(exp)):
-    if(exp[i] == '.'):
-        x = i
-        break
-part1 = exp[:x]
-part2 = exp[x:]
-cpfile = part1 + '_full' + part2
+    # sep index
+    j = 0
 
-# may not need copy...active copy that records new ver of input file minus the 
-# parts you need to transform
-# shutil.copyfile(exp, cpfile) --> not needed. Copy process productive for script
-
-tmp = 'tmp.txt'
-counter = 0
-## initial test model
-# will take an input file and output file and transfer specific chunk to output
-with open(exp, 'r') as file1, open(cpfile, 'w') as file2, open(tmp, 'w') as file3:
-    # cp input file until first snippet found
-    for null_line in file1:
-        if '[**' in null_line:
-            init_pos = file1.tell()
+    # ext & name sep
+    for i in range( len( fName ) ):
+        if fName[i] == '.':
+            j = i
             break
+
+    part1 = fName[:j]
+    part2 = fName[j:]
+    return (part1 + fileCount + part2) 
+
+def getSnippet(readFile, delim, N=None):
+    '''creates a tmp file of just deliminated snippet from readFile
+       input:
+            readFile: file you are extracting the snippet from
+                    NOTE: expects an already opened file stream name
+            delim: the deliminator that the encloses snippet
+            N: int you want to designate this particular snippet
+                Usually used for multiple snippets being generated
+       output:
+            void function. Doesn't return a value.
+            generates a tmp snippet file in pwd
+    '''
+    # gen name of tmp file
+    tmp = newName('tmp.md', N)
+    
+    # extract snippet from ALREADY open file stream
+    with open(tmp, 'w') as f:
+        for line in readFile:
+            if delim in line:
+                break
+            else:
+                f.write(line)
+
+        f. close()
+    return
+
+def tranSnippet(snipFile, outFile):
+    '''Transforms snippet from Markdown (.md) to html
+       input:
+            snipFile: str of snippet file you want to transform
+            outFile: output file or stdout. Place you want to output to
+       output:
+            void function. outputs html file to outFile
+
+       Note: requires the Markdown.pl and perl file to exe
+    '''
+    # command line sequence to transform markdown file
+    cmd = ['perl', 'Markdown.pl', snipFile]
+
+    # calls cmd line command and outputs to outFile 
+    check_call(cmd,stdout = outFile)
+    return
+
+def cleaningUp(N):
+    if N == 0:
+        return
+    for i in range(N):
+        tmpFile = newName('tmp.md',i)
+        cmd = ['rm',tmpFile]
+        check_call(cmd)
+    return
+
+def main():
+    inFile = raw_input('Enter filename here (include file ext): ')
+    outFile = newName(inFile)
+    delimB = '[**'
+    delimE = '**]'
+    snippetCount = 0
+    
+    # outermost loop to translate md to html in one read
+    try:
+        f0 = open(inFile,'r')
+        f1 = open(outFile,'w')
+    except:
+        print("Can't read file, invalid type, misspelling, not in dir.")
+        return
+
+    # read throughs infile once. appends desired file as it goes
+    for line in f0:
+        if delimB in line:
+            getSnippet(f0,delimE,snippetCount)
+            snipFile = 'tmp' + str(snippetCount) + '.md'
+           
+            # temp fix for output ordering issue
+            f1.close()
+            f1 = open(outFile,'a')
+
+            tranSnippet(snipFile,f1)
+            snippetCount += 1
         else:
-            file2.write(null_line)
-            counter+=1
+            f1.write(line)
+   
+    f0.close()
+    f1.close()
+    cleaningUp(snippetCount)
 
-    # reads through snippet and stores in tmp file for conversion
-    for line in file1:
-        if '**]' in line:
-            break
-        else:
-            file3.write(line)
-            
-    # finishes cp of rest of input file
-    for line in file1:
-        file2.write(line)
+    return
 
-    file1.close()
-    file2.close()
-    file3.close
-
-# bash markdown command + redirecting output to tmp file
-f = open('new_tmp.txt', 'w')
-
-# applying markdown -> html conversion
-cmd = ['perl', 'Markdown.pl', tmp]
-subprocess.check_call(cmd, stdout = f)
-f.close()
-
-# concats cp of input file with transformed snippet 
-with open(cpfile,'rw+') as f2:
-    for c in range(counter):
-        f2.readline()
-    init_pos = f2.tell()
-    remainder = f2.read()
-    f2.seek(init_pos)
-    with open('new_tmp.txt','r') as f3:
-        f2.write(f3.read())
-    f2.write(remainder)
-
-
-
+if __name__ == '__main__':
+    main()
