@@ -1,3 +1,7 @@
 # Vim backups
 *~
 /tests
+
+# Files and Scripts used for prototyping
+input.md
+Markdown.pl

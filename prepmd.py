@@ -6,7 +6,8 @@ import subprocess
 
 # making a cp of original w/changed output
 # name separation--> output name
-exp = 'input.md'  # change name here to your fileName.txt
+
+exp = raw_input('File to preprocess: ')  # change name here to your fileName.txt
 x = 0
 for i in range(len(exp)):
     if(exp[i] == '.'):
