@@ -13,6 +13,10 @@ Tested for python 2.7+
 
 **Usage:**
 
+`python dev.py <file_name_here>`
+
+Allows the use of multiple file inputs to each be processed individually
+
  1. input is a kramdown file (.md)
  2. mark off section for preprocessing betwen an html comment with '[**', '**]' used in between. Ex. <!-- [** ........**]-->
  3. Make sure Markdown.pl is in the same dir as both your .md file and prepmd
@@ -26,3 +30,4 @@ Tested for python 2.7+
  2. turn overall script into a commandline tool format
  3. Restructure code to allow for multiple delimited markdown snippets to html
  4. Add self clean up for tmp files
+

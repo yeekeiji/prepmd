@@ -15,7 +15,7 @@ def cmdLineParse():
     parser = argparse.ArgumentParser(description="converts marked snippets of markdown to html")
     
     #define possible arguments and flags
-    parser.add_argument('file',type=str, help="name of file(s) you wish to process")
+    parser.add_argument('file',type=str, nargs='+', help="name of file(s) you wish to process")
 
     #find name of files to process
     filesToProc = parser.parse_args()
@@ -37,12 +37,13 @@ def newName(fName, N=None):
     # sep index
     j = 0
 
-    # ext & name sep
+    # ext & name sep. Finds index of '.' in fName
     for i in range( len( fName ) ):
         if fName[i] == '.':
             j = i
             break
 
+    # breaks fName into two parts name and ext to allow insert of fileCount
     part1 = fName[:j]
     part2 = fName[j:]
     return (part1 + fileCount + part2) 
@@ -100,43 +101,43 @@ def cleaningUp(N):
     return
 
 def main():
-    inFile = cmdLineParse() 
-    outFile = newName(inFile)
-    delimB = '[**'
-    delimE = '**]'
-    snippetCount = 0
-    
-    # outermost loop to translate md to html in one read
-    try:
-        f0 = open(inFile,'r')
-        f1 = open(outFile,'w')
-    except:
-        print("Can't read file, invalid type, misspelling, not in dir.")
-        return
+    f_args = cmdLineParse()
+    for f in f_args:
+        inFile = f 
+        outFile = newName(inFile)
+        delimB = '[**'
+        delimE = '**]'
+        snippetCount = 0
+        
+        # outermost loop to translate md to html in one read
+        try:
+            f0 = open(inFile,'r')
+            f1 = open(outFile,'w')
+        except:
+            print("Can't read file, invalid type, misspelling, not in dir.")
+            return
 
-    # read throughs infile once. appends desired file as it goes
-    for line in f0:
-        if delimB in line:
-            getSnippet(f0,delimE,snippetCount)
-            snipFile = 'tmp' + str(snippetCount) + '.md'
-           
-            # temp fix for output ordering issue
-            f1.close()
-            f1 = open(outFile,'a')
+        # read through infile once. appends desired snippet as it goes
+        for line in f0:
+            if delimB in line:
+                getSnippet(f0,delimE,snippetCount)
+                snipFile = 'tmp' + str(snippetCount) + '.md'
+               
+                # temp fix for output ordering issue
+                f1.close()
+                f1 = open(outFile,'a')
 
-            tranSnippet(snipFile,f1)
-            snippetCount += 1
-        else:
-            f1.write(line)
-   
-    f0.close()
-    f1.close()
-    cleaningUp(snippetCount)
+                tranSnippet(snipFile,f1)
+                snippetCount += 1
+            else:
+                f1.write(line)
+        
+        # close file streams & rm temp files
+        f0.close()
+        f1.close()
+        cleaningUp(snippetCount)
 
     return
 
 if __name__ == '__main__':
     main()
-    #f = cmdLineParse()
-    #print(type(f))
-    #print(f)
