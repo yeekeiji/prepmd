@@ -18,7 +18,7 @@ Tested for python 2.7+
 Allows the use of multiple file inputs to each be processed individually
 
  1. input is a kramdown file (.md)
- 2. mark off section for preprocessing betwen an html comment with '[**', '**]' used in between. Ex. <!-- [** ........**]-->
+ 2. mark off section for preprocessing betwen an html comment with `[**', '**]` used in between. Ex. <!-- [** ........**]-->
  3. Make sure Markdown.pl is in the same dir as both your .md file and prepmd
  4. change the name of 'exp' var in script to the name of your markdown file.
  5. run 'python prepmd.py'
